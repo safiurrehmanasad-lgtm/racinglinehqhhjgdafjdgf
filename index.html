@@ -1,0 +1,722 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>RacingLineHQ — 2026 Motorsport Schedule Tracker</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --bg:#0A0A0B;
+  --surface:#111113;
+  --card:#17171A;
+  --card-hover:#1C1C20;
+  --border:#252528;
+  --border-light:#2E2E33;
+  --red:#E8001D;
+  --red-dim:rgba(232,0,29,0.1);
+  --red-glow:rgba(232,0,29,0.25);
+  --white:#FFFFFF;
+  --off:#E4E4E8;
+  --muted:#7A7A82;
+  --muted2:#4A4A52;
+  --gt:#00AEEF;
+  --gt-dim:rgba(0,174,239,0.12);
+  --dtm:#FFB800;
+  --dtm-dim:rgba(255,184,0,0.12);
+  --nls:#00C170;
+  --nls-dim:rgba(0,193,112,0.12);
+  --wec:#FF3344;
+  --wec-dim:rgba(255,51,68,0.12);
+  --mono:'JetBrains Mono',monospace;
+  --cond:'Barlow Condensed',sans-serif;
+  --body:'Inter',sans-serif;
+}
+html{scroll-behavior:smooth;}
+body{font-family:var(--body);background:var(--bg);color:var(--off);min-height:100vh;-webkit-font-smoothing:antialiased;}
+
+/* ── HEADER ── */
+header{
+  position:sticky;top:0;z-index:200;
+  height:58px;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 clamp(1rem,3vw,2rem);
+  background:rgba(10,10,11,0.95);
+  backdrop-filter:blur(16px);
+  border-bottom:1px solid var(--border);
+  gap:1rem;
+}
+.brand{display:flex;align-items:center;gap:.55rem;text-decoration:none;flex-shrink:0;}
+.brand-stripe{display:flex;flex-direction:column;gap:3px;}
+.brand-stripe span{display:block;width:16px;height:2.5px;border-radius:1px;}
+.brand-stripe span:nth-child(1){background:var(--white);}
+.brand-stripe span:nth-child(2){background:var(--red);}
+.brand-stripe span:nth-child(3){background:var(--white);}
+.brand-name{font-family:var(--cond);font-size:1.3rem;font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:var(--white);}
+.brand-name em{color:var(--red);font-style:normal;}
+.header-right{display:flex;align-items:center;gap:.6rem;}
+.ctrl{display:flex;flex-direction:column;gap:2px;}
+.ctrl-lbl{font-size:.57rem;letter-spacing:.14em;text-transform:uppercase;color:var(--muted2);font-weight:500;padding-left:2px;}
+.ctrl select{
+  appearance:none;background:var(--card);border:1px solid var(--border-light);color:var(--off);
+  font-family:var(--body);font-size:.75rem;font-weight:500;
+  padding:.32rem 1.7rem .32rem .6rem;cursor:pointer;border-radius:3px;outline:none;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='9' height='5' fill='none'%3E%3Cpath d='M1 1l3.5 3L8 1' stroke='%237A7A82' stroke-width='1.4' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right .5rem center;
+  transition:border-color .2s;
+}
+.ctrl select:focus{border-color:var(--red);}
+.ctrl select option{background:#17171A;}
+.tz-sel{min-width:190px;}
+.lang-sel{min-width:110px;}
+
+/* ── TICKER ── */
+.ticker{height:26px;background:var(--red);overflow:hidden;display:flex;align-items:center;}
+.ticker-track{display:flex;white-space:nowrap;animation:scroll-ticker 50s linear infinite;}
+.ticker-track:hover{animation-play-state:paused;}
+.t-item{font-family:var(--cond);font-size:.72rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:#fff;padding:0 2rem;flex-shrink:0;}
+.t-sep{color:rgba(255,255,255,.4);padding:0 .15rem;}
+@keyframes scroll-ticker{from{transform:translateX(0);}to{transform:translateX(-50%);}}
+
+/* ── MAIN ── */
+main{max-width:1380px;margin:0 auto;padding:clamp(1.2rem,2.5vw,2rem) clamp(1rem,3vw,2rem) 3rem;}
+
+/* ── PAGE HEADER ── */
+.pg-head{display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:1.6rem;gap:1rem;flex-wrap:wrap;}
+.pg-title{font-family:var(--cond);font-size:clamp(1.2rem,2.5vw,1.7rem);font-weight:700;letter-spacing:.07em;text-transform:uppercase;}
+.pg-sub{font-size:.75rem;color:var(--muted);margin-top:.25rem;}
+.live-pill{display:inline-flex;align-items:center;gap:.4rem;background:var(--red-dim);border:1px solid rgba(232,0,29,.3);color:var(--red);font-size:.65rem;font-weight:600;letter-spacing:.18em;text-transform:uppercase;padding:.28rem .7rem;border-radius:2px;flex-shrink:0;}
+.live-dot{width:5px;height:5px;background:var(--red);border-radius:50%;animation:blink 1.8s ease-in-out infinite;}
+@keyframes blink{0%,100%{opacity:1;transform:scale(1);}50%{opacity:.35;transform:scale(.65);}}
+
+/* ── LEAGUE GRID ── */
+.league-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:1.2rem;}
+
+/* ── CARD ── */
+.card{background:var(--card);border:1px solid var(--border);border-radius:6px;overflow:hidden;display:flex;flex-direction:column;transition:border-color .25s,background .25s;}
+.card:hover{background:var(--card-hover);border-color:var(--border-light);}
+.card-top-bar{height:2px;width:100%;}
+.card--gt  .card-top-bar{background:var(--gt);}
+.card--dtm .card-top-bar{background:var(--dtm);}
+.card--nls .card-top-bar{background:var(--nls);}
+.card--wec .card-top-bar{background:var(--wec);}
+
+/* card header */
+.card-head{padding:.9rem 1.1rem .8rem;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:.75rem;}
+.card-id{display:flex;align-items:center;gap:.7rem;}
+.league-pill{font-family:var(--cond);font-size:.62rem;font-weight:800;letter-spacing:.2em;text-transform:uppercase;padding:.18rem .55rem;border-radius:2px;flex-shrink:0;}
+.card--gt  .league-pill{background:var(--gt-dim);color:var(--gt);}
+.card--dtm .league-pill{background:var(--dtm-dim);color:var(--dtm);}
+.card--nls .league-pill{background:var(--nls-dim);color:var(--nls);}
+.card--wec .league-pill{background:var(--wec-dim);color:var(--wec);}
+.league-name{font-family:var(--cond);font-size:.92rem;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--white);line-height:1.2;}
+.league-sub{font-size:.65rem;color:var(--muted);margin-top:.1rem;}
+.card-links{display:flex;align-items:center;gap:.45rem;flex-shrink:0;}
+.btn-link{display:inline-flex;align-items:center;gap:.3rem;font-size:.66rem;font-weight:500;text-decoration:none;padding:.28rem .6rem;border-radius:3px;border:1px solid var(--border-light);color:var(--muted);background:transparent;transition:border-color .2s,color .2s,background .2s;white-space:nowrap;}
+.btn-link:hover{color:var(--white);border-color:var(--muted);background:rgba(255,255,255,.04);}
+.btn-link svg{flex-shrink:0;}
+.btn-yt{border-color:rgba(255,0,0,.25);color:#FF4444;}
+.btn-yt:hover{border-color:#FF4444;color:#FF4444;background:rgba(255,0,0,.07);}
+
+/* tabs */
+.card-tabs{display:flex;border-bottom:1px solid var(--border);padding:0 1.1rem;}
+.tab-btn{font-family:var(--cond);font-size:.68rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);background:none;border:none;padding:.6rem .5rem;cursor:pointer;border-bottom:2px solid transparent;transition:color .2s,border-color .2s;margin-bottom:-1px;}
+.tab-btn.active{color:var(--white);border-bottom-color:var(--red);}
+.tab-btn:hover:not(.active){color:var(--off);}
+
+/* event banner */
+.event-banner{display:flex;align-items:center;justify-content:space-between;padding:.65rem 1.1rem;background:var(--surface);border-bottom:1px solid var(--border);gap:.5rem;flex-wrap:wrap;}
+.ev-name{font-family:var(--cond);font-size:.85rem;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--white);}
+.ev-loc{font-size:.65rem;color:var(--muted);margin-top:.1rem;}
+.ev-countdown{font-family:var(--mono);font-size:.68rem;color:var(--muted);text-align:right;flex-shrink:0;}
+.ev-countdown strong{display:block;font-family:var(--cond);font-size:.82rem;font-weight:700;color:var(--off);letter-spacing:.04em;}
+
+/* sessions */
+.sessions{flex:1;padding:.25rem 0;}
+.session-row{display:grid;grid-template-columns:1fr auto;align-items:center;padding:.52rem 1.1rem;border-left:2px solid transparent;transition:background .15s,border-color .15s;gap:.75rem;}
+.session-row+.session-row{border-top:1px solid rgba(37,37,40,.8);}
+.session-row:hover{background:rgba(255,255,255,.02);}
+.session-row.is-next{border-left-color:var(--red);background:rgba(232,0,29,.03);}
+.session-row.is-done{opacity:.45;}
+.s-left{display:flex;align-items:center;gap:.6rem;min-width:0;}
+.s-pill{font-family:var(--cond);font-size:.58rem;font-weight:800;letter-spacing:.16em;text-transform:uppercase;padding:.15rem .48rem;border-radius:2px;flex-shrink:0;}
+.s-pill.prac{background:rgba(120,120,255,.14);color:#9090FF;}
+.s-pill.qual{background:rgba(255,184,0,.14);color:#FFB800;}
+.s-pill.race{background:rgba(232,0,29,.14);color:#FF3344;}
+.s-pill.warm{background:rgba(0,193,112,.13);color:#00C170;}
+.s-pill.hyp{background:rgba(200,80,255,.13);color:#C850FF;}
+.s-info{}
+.s-next-lbl{font-family:var(--cond);font-size:.55rem;font-weight:800;letter-spacing:.2em;text-transform:uppercase;color:var(--red);line-height:1;}
+.s-label{font-size:.78rem;font-weight:500;color:var(--off);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.s-date{font-size:.62rem;color:var(--muted);margin-top:.08rem;}
+.s-right{text-align:right;flex-shrink:0;}
+.s-time{font-family:var(--mono);font-size:.95rem;font-weight:500;color:var(--white);letter-spacing:.03em;}
+.s-time.flash{animation:time-flash .55s ease forwards;}
+@keyframes time-flash{0%{color:var(--red);}100%{color:var(--white);}}
+.s-tz{font-size:.6rem;color:var(--muted2);margin-top:.1rem;}
+
+/* full calendar panel */
+.cal-panel{display:none;padding:.5rem 0;}
+.cal-panel.active{display:block;}
+.cal-round{display:flex;align-items:center;justify-content:space-between;padding:.45rem 1.1rem;gap:.75rem;}
+.cal-round+.cal-round{border-top:1px solid rgba(37,37,40,.8);}
+.cal-round.done .cr-num,.cal-round.done .cr-name,.cal-round.done .cr-loc{opacity:.38;}
+.cal-round.next .cr-num{color:var(--red);}
+.cr-num{font-family:var(--mono);font-size:.62rem;color:var(--muted);width:18px;flex-shrink:0;}
+.cr-info{flex:1;min-width:0;}
+.cr-name{font-family:var(--cond);font-size:.8rem;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--off);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.cr-loc{font-size:.62rem;color:var(--muted);margin-top:.05rem;}
+.cr-dates{font-family:var(--mono);font-size:.65rem;color:var(--muted);text-align:right;flex-shrink:0;}
+.cr-status{font-size:.58rem;font-weight:600;letter-spacing:.12em;text-transform:uppercase;margin-top:.15rem;text-align:right;}
+.cr-status.done{color:var(--muted2);}
+.cr-status.next{color:var(--red);}
+.cr-status.upcoming{color:var(--muted);}
+
+/* card footer */
+.card-foot{padding:.6rem 1.1rem;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:.5rem;}
+.foot-info{font-size:.65rem;color:var(--muted);}
+.foot-info strong{color:var(--off);font-weight:500;}
+.foot-note{font-size:.6rem;color:var(--muted2);font-style:italic;}
+
+/* ── FOOTER ── */
+footer{border-top:1px solid var(--border);padding:1.2rem clamp(1rem,3vw,2rem);display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap;}
+.foot-brand{font-family:var(--cond);font-size:.85rem;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--muted2);}
+.foot-brand em{color:var(--red);font-style:normal;}
+.foot-copy{font-size:.65rem;color:var(--muted2);text-align:right;line-height:1.6;max-width:480px;}
+
+/* ── RESPONSIVE ── */
+@media(max-width:960px){.league-grid{grid-template-columns:1fr;}}
+@media(max-width:600px){
+  header{height:auto;padding:.6rem 1rem;flex-wrap:wrap;gap:.5rem;}
+  .header-right{width:100%;justify-content:space-between;}
+  .tz-sel{flex:1;min-width:0;}
+  .ticker{display:none;}
+  .s-time{font-size:.85rem;}
+  .tz-sel{min-width:0;}
+}
+@media(prefers-reduced-motion:reduce){
+  .ticker-track{animation:none;}
+  @keyframes time-flash{0%,100%{color:var(--white);}}
+}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header>
+  <a class="brand" href="#">
+    <div class="brand-stripe"><span></span><span></span><span></span></div>
+    <div class="brand-name">Racing<em>Line</em>HQ</div>
+  </a>
+  <div class="header-right">
+    <div class="ctrl">
+      <span class="ctrl-lbl" data-i18n="lbl_tz">Timezone</span>
+      <select class="tz-sel" id="tzSel" aria-label="Select timezone">
+        <option value="Europe/London">London (GMT/BST)</option>
+        <option value="Europe/Berlin" selected>Berlin (CET/CEST)</option>
+        <option value="Europe/Paris">Paris (CET/CEST)</option>
+        <option value="Europe/Madrid">Madrid (CET/CEST)</option>
+        <option value="Europe/Rome">Rome (CET/CEST)</option>
+        <option value="America/New_York">New York (ET)</option>
+        <option value="America/Chicago">Chicago (CT)</option>
+        <option value="America/Los_Angeles">Los Angeles (PT)</option>
+        <option value="America/Sao_Paulo">São Paulo (BRT)</option>
+        <option value="Asia/Tokyo">Tokyo (JST)</option>
+        <option value="Asia/Dubai">Dubai (GST)</option>
+        <option value="Asia/Singapore">Singapore (SGT)</option>
+        <option value="Australia/Sydney">Sydney (AEST)</option>
+        <option value="UTC">UTC</option>
+      </select>
+    </div>
+    <div class="ctrl">
+      <span class="ctrl-lbl" data-i18n="lbl_lang">Language</span>
+      <select class="lang-sel" id="langSel" aria-label="Select language">
+        <option value="en">🇬🇧 English</option>
+        <option value="de">🇩🇪 Deutsch</option>
+        <option value="fr">🇫🇷 Français</option>
+      </select>
+    </div>
+  </div>
+</header>
+
+<!-- TICKER -->
+<div class="ticker" aria-hidden="true">
+  <div class="ticker-track" id="ticker">
+    <span class="t-item">GT World Challenge Europe 2026</span><span class="t-item t-sep">·</span>
+    <span class="t-item">DTM Season 2026 — 8 Rounds</span><span class="t-item t-sep">·</span>
+    <span class="t-item">NLS — ADAC RAVENOL Nürburgring Langstrecken-Serie 2026</span><span class="t-item t-sep">·</span>
+    <span class="t-item">FIA World Endurance Championship 2026</span><span class="t-item t-sep">·</span>
+    <span class="t-item">All times convert to your selected timezone automatically</span><span class="t-item t-sep">·</span>
+    <span class="t-item">GT World Challenge Europe 2026</span><span class="t-item t-sep">·</span>
+    <span class="t-item">DTM Season 2026 — 8 Rounds</span><span class="t-item t-sep">·</span>
+    <span class="t-item">NLS — ADAC RAVENOL Nürburgring Langstrecken-Serie 2026</span><span class="t-item t-sep">·</span>
+    <span class="t-item">FIA World Endurance Championship 2026</span><span class="t-item t-sep">·</span>
+    <span class="t-item">All times convert to your selected timezone automatically</span><span class="t-item t-sep">·</span>
+  </div>
+</div>
+
+<!-- MAIN -->
+<main>
+  <div class="pg-head">
+    <div>
+      <h1 class="pg-title" data-i18n="pg_title">2026 Race Schedules</h1>
+      <p class="pg-sub" data-i18n="pg_sub">Real 2026 calendars · Times convert live to your timezone · Verify on official sites</p>
+    </div>
+    <div class="live-pill"><span class="live-dot"></span><span data-i18n="lbl_live">Live Timezone</span></div>
+  </div>
+
+  <div class="league-grid" id="grid"></div>
+</main>
+
+<!-- FOOTER -->
+<footer>
+  <div class="foot-brand">Racing<em>Line</em>HQ</div>
+  <p class="foot-copy" data-i18n="footer_note">Schedule data sourced from official 2026 calendars. Session times are indicative — always verify on official league websites before travelling. Times update automatically when you change timezone.</p>
+</footer>
+
+<script>
+// ═══════════════════════════════════════════════
+//  i18n
+// ═══════════════════════════════════════════════
+const LANG = {
+  en:{
+    lbl_tz:'Timezone', lbl_lang:'Language', lbl_live:'Live Timezone',
+    pg_title:'2026 Race Schedules', pg_sub:'Real 2026 calendars · Times convert live to your timezone · Verify on official sites',
+    tab_next:'Next Race', tab_cal:'Full Calendar',
+    prac:'Practice', qual:'Qualifying', race:'Race', warm:'Warm-Up', hyp:'Hyperpole',
+    btn_official:'Official', btn_yt:'Watch Live',
+    next_lbl:'NEXT', done_lbl:'DONE', upcoming_lbl:'UPCOMING',
+    rnd:'Rnd', of:'of', verify:'Verify times on official site',
+    footer_note:'Schedule data sourced from official 2026 calendars. Session times are indicative — always verify on official league websites before travelling. Times update automatically when you change timezone.',
+    days_away:'d away', today:'Today', tomorrow:'Tomorrow',
+  },
+  de:{
+    lbl_tz:'Zeitzone', lbl_lang:'Sprache', lbl_live:'Live Zeitzone',
+    pg_title:'2026 Rennkalender', pg_sub:'Echte 2026-Kalender · Zeiten werden automatisch umgerechnet · Auf offiziellen Seiten prüfen',
+    tab_next:'Nächstes Rennen', tab_cal:'Vollständiger Kalender',
+    prac:'Training', qual:'Qualifying', race:'Rennen', warm:'Warm-Up', hyp:'Hyperpole',
+    btn_official:'Offizielle Seite', btn_yt:'Live schauen',
+    next_lbl:'NÄCHSTE', done_lbl:'FERTIG', upcoming_lbl:'GEPLANT',
+    rnd:'Runde', of:'von', verify:'Zeiten auf offizieller Website prüfen',
+    footer_note:'Zeitplandaten aus offiziellen 2026-Kalendern. Sessionzeiten sind indikativ — stets auf offiziellen Liga-Websites verifizieren.',
+    days_away:'T.', today:'Heute', tomorrow:'Morgen',
+  },
+  fr:{
+    lbl_tz:'Fuseau horaire', lbl_lang:'Langue', lbl_live:'Fuseau en direct',
+    pg_title:'Calendriers 2026', pg_sub:'Vrais calendriers 2026 · Horaires convertis en direct · Vérifiez sur les sites officiels',
+    tab_next:'Prochaine Course', tab_cal:'Calendrier complet',
+    prac:'Essais', qual:'Qualifications', race:'Course', warm:'Tour de Chauffe', hyp:'Hyperpole',
+    btn_official:'Site Officiel', btn_yt:'Regarder en direct',
+    next_lbl:'SUIVANT', done_lbl:'TERMINÉ', upcoming_lbl:'À VENIR',
+    rnd:'Manche', of:'sur', verify:'Vérifier sur le site officiel',
+    footer_note:'Données issues des calendriers officiels 2026. Horaires indicatifs — vérifiez toujours sur les sites officiels des ligues.',
+    days_away:'j', today:"Aujourd'hui", tomorrow:'Demain',
+  },
+};
+
+// ═══════════════════════════════════════════════
+//  DATA  (all UTC ISO-8601)
+//  Sources:
+//  GTWC: official timetable PDF Misano 2026
+//  DTM: dtm.com/en/events + racecountdown.com
+//  NLS: nuerburgring-langstrecken-serie.de + nringinfo.de (Qual 08:30, Race 12:00 CET)
+//  WEC: fiawec.com race pages (Sao Paulo times confirmed)
+// ═══════════════════════════════════════════════
+const DATA = [
+
+  // ── GT WORLD CHALLENGE EUROPE ──────────────────
+  {
+    id:'gt', css:'card--gt', accentVar:'--gt',
+    name:'GT World Challenge', sub:'GT WORLD — Sprint Cup Europe',
+    pill:'GT WORLD',
+    url:'https://gt-world-challenge-europe.com',
+    ytUrl:'https://www.youtube.com/@GTWorld',
+    currentRound:5, totalRounds:6,
+
+    // Next race: Misano (Round 5) — 17–19 Jul 2026
+    // Times from official timetable PDF (CEST = UTC+2)
+    nextEvent:{
+      name:'Round 5 — Misano',
+      location:'Misano World Circuit Marco Simoncelli, Italy',
+      sessions:[
+        {type:'prac', label:'Free Practice 1',   utc:'2026-07-17T12:50:00Z'}, // 14:50 CEST
+        {type:'prac', label:'Free Practice 2',   utc:'2026-07-17T18:30:00Z'}, // 20:30 CEST
+        {type:'qual', label:'Qualifying 1',       utc:'2026-07-18T11:05:00Z'}, // 13:05 CEST
+        {type:'qual', label:'Qualifying 2',       utc:'2026-07-18T11:20:00Z'}, // 13:20 CEST
+        {type:'race', label:'Race 1',             utc:'2026-07-18T18:30:00Z'}, // 20:30 CEST
+        {type:'qual', label:'Qualifying 3',       utc:'2026-07-19T08:05:00Z'}, // 10:05 CEST
+        {type:'qual', label:'Qualifying 4',       utc:'2026-07-19T08:20:00Z'}, // 10:20 CEST
+        {type:'race', label:'Race 2',             utc:'2026-07-19T12:30:00Z'}, // 14:30 CEST
+      ],
+    },
+
+    rounds:[
+      {n:1, name:'Paul Ricard',   loc:'Circuit Paul Ricard, France',         dates:'17–18 May 2026',  done:true},
+      {n:2, name:'Brands Hatch',  loc:'Brands Hatch Grand Prix, UK',         dates:'28–29 Jun 2026',  done:true},
+      {n:3, name:'24H Spa',       loc:'Circuit de Spa-Francorchamps, Belgium',dates:'23–28 Jun 2026', done:true},
+      {n:4, name:'Nürburgring',   loc:'Nürburgring Grand Prix, Germany',     dates:'4–5 Jul 2026',    done:true},
+      {n:5, name:'Misano',        loc:'Misano World Circuit, Italy',         dates:'17–19 Jul 2026',  done:false, next:true},
+      {n:6, name:'Barcelona',     loc:'Circuit de Barcelona-Catalunya, Spain',dates:'25–26 Sep 2026', done:false},
+    ],
+  },
+
+  // ── DTM ───────────────────────────────────────
+  {
+    id:'dtm', css:'card--dtm', accentVar:'--dtm',
+    name:'DTM',
+    sub:'Deutsche Tourenwagen Masters',
+    pill:'DTM',
+    url:'https://dtm.com',
+    ytUrl:'https://www.youtube.com/@DTM',
+    currentRound:4, totalRounds:8,
+
+    // Next race: Norisring (Round 4) — 3–5 Jul 2026
+    // DTM weekend: Fri FP, Sat Q1+Race1, Sun Q2+Race2 (typical CET = UTC+2)
+    nextEvent:{
+      name:'Round 4 — Norisring',
+      location:'Norisring Street Circuit, Nuremberg, Germany',
+      sessions:[
+        {type:'prac', label:'Free Practice 1',   utc:'2026-07-03T08:00:00Z'}, // 10:00 CEST
+        {type:'prac', label:'Free Practice 2',   utc:'2026-07-03T12:45:00Z'}, // 14:45 CEST
+        {type:'qual', label:'Qualifying 1',       utc:'2026-07-04T08:00:00Z'}, // 10:00 CEST
+        {type:'race', label:'Race 1',             utc:'2026-07-04T11:30:00Z'}, // 13:30 CEST
+        {type:'qual', label:'Qualifying 2',       utc:'2026-07-05T08:00:00Z'}, // 10:00 CEST
+        {type:'race', label:'Race 2',             utc:'2026-07-05T11:30:00Z'}, // 13:30 CEST
+      ],
+    },
+
+    rounds:[
+      {n:1, name:'Red Bull Ring',   loc:'Red Bull Ring, Spielberg, Austria',     dates:'24–27 Apr 2026', done:true},
+      {n:2, name:'Zandvoort',       loc:'Circuit Zandvoort, Netherlands',        dates:'22–25 May 2026', done:true},
+      {n:3, name:'Lausitzring',     loc:'DEKRA Lausitzring, Germany',            dates:'19–21 Jun 2026', done:true},
+      {n:4, name:'Norisring',       loc:'Norisring, Nuremberg, Germany',         dates:'3–5 Jul 2026',   done:false, next:true},
+      {n:5, name:'Oschersleben',    loc:'Motorsport Arena Oschersleben, Germany',dates:'24–26 Jul 2026', done:false},
+      {n:6, name:'Nürburgring',     loc:'Nürburgring Grand Prix, Germany',       dates:'14–16 Aug 2026', done:false},
+      {n:7, name:'Sachsenring',     loc:'Sachsenring, Hohenstein-Ernstthal, DE', dates:'11–13 Sep 2026', done:false},
+      {n:8, name:'Hockenheimring',  loc:'Hockenheimring, Germany — FINALE',      dates:'9–11 Oct 2026',  done:false},
+    ],
+  },
+
+  // ── NLS ───────────────────────────────────────
+  {
+    id:'nls', css:'card--nls', accentVar:'--nls',
+    name:'NLS',
+    sub:'ADAC RAVENOL Nürburgring Langstrecken-Serie',
+    pill:'NLS',
+    url:'https://nls.nu',
+    ytUrl:'https://www.youtube.com/@VLNOFFICIAL',
+    currentRound:7, totalRounds:10,
+
+    // Next race: NLS7 — 1 Aug 2026 (6h race)
+    // Standard NLS timetable (CET/CEST = UTC+2):
+    //   Qualifying: 08:30–10:00 → UTC 06:30
+    //   Race start: 12:00 → UTC 10:00
+    //   6h race finish: 18:00 → UTC 16:00
+    nextEvent:{
+      name:'NLS7 — KW 6h ADAC Ruhr-Pokal-Rennen',
+      location:'Nürburgring Nordschleife + GP Circuit, Germany',
+      sessions:[
+        {type:'qual', label:'Qualifying',     utc:'2026-08-01T06:30:00Z'}, // 08:30 CEST
+        {type:'race', label:'6h Race Start',  utc:'2026-08-01T10:00:00Z'}, // 12:00 CEST
+        {type:'race', label:'6h Race Finish', utc:'2026-08-01T16:00:00Z'}, // 18:00 CEST
+      ],
+    },
+
+    rounds:[
+      {n:1,  name:'NLS1 — ADAC Westfalenfahrt (4h)',               loc:'Nürburgring Nordschleife',  dates:'14 Mar 2026',      done:true},
+      {n:2,  name:'NLS2 — ADAC Barbarossapreis (4h)',              loc:'Nürburgring Nordschleife',  dates:'21 Mar 2026',      done:true},
+      {n:3,  name:'NLS3 — Adenauer ADAC Rundstrecken-Trophy (4h)', loc:'Nürburgring Nordschleife',  dates:'11 Apr 2026',      done:true},
+      {n:'Q',name:'ADAC 24h Nürburgring Qualifiers (2×4h)',        loc:'Nürburgring Nordschleife',  dates:'18–19 Apr 2026',   done:true},
+      {n:6,  name:'NLS6 — ADAC Eifel Trophy (4h)',                 loc:'Nürburgring Nordschleife',  dates:'20 Jun 2026',      done:true},
+      {n:7,  name:'NLS7 — KW 6h ADAC Ruhr-Pokal-Rennen',          loc:'Nürburgring Nordschleife',  dates:'1 Aug 2026',       done:false, next:true},
+      {n:8,  name:'NLS8 — ADAC Reinoldus-Langstreckenrennen (4h)', loc:'Nürburgring Nordschleife',  dates:'12 Sep 2026',      done:false},
+      {n:9,  name:'NLS9 — ADAC Barbarossapreis (4h)',              loc:'Nürburgring Nordschleife',  dates:'13 Sep 2026',      done:false},
+      {n:10, name:'NLS10 — NLS Sportwarte-Trophy (4h)',            loc:'Nürburgring Nordschleife',  dates:'10 Oct 2026',      done:false},
+    ],
+  },
+
+  // ── FIA WEC ───────────────────────────────────
+  {
+    id:'wec', css:'card--wec', accentVar:'--wec',
+    name:'FIA WEC',
+    sub:'FIA World Endurance Championship',
+    pill:'FIA WEC',
+    url:'https://fiawec.com',
+    ytUrl:'https://www.youtube.com/@FIAWEC',
+    currentRound:4, totalRounds:8,
+
+    // Next race: Round 4 — Rolex 6 Hours of São Paulo — 10–12 Jul 2026
+    // Times from fiawec.com (BRT = UTC-3)
+    // FP1 11:00 local = 14:00 UTC, FP2 15:50 local = 18:50 UTC (Fri 10 Jul)
+    // FP3 10:10 local = 13:10 UTC (Sat 11 Jul)
+    // Q-LMGT3 14:30 = 17:30 UTC, Hyp-LMGT3 14:50 = 17:50 UTC (Sat 11 Jul)
+    // Q-HC 15:25 = 18:25 UTC, Hyp-HC 15:45 = 18:45 UTC (Sat 11 Jul)
+    // Race 11:30 local = 14:30 UTC (Sun 12 Jul)
+    nextEvent:{
+      name:'R4 — Rolex 6 Hours of São Paulo',
+      location:'Autódromo José Carlos Pace (Interlagos), São Paulo, Brazil',
+      sessions:[
+        {type:'prac', label:'Free Practice 1',       utc:'2026-07-10T14:00:00Z'}, // 11:00 BRT
+        {type:'prac', label:'Free Practice 2',       utc:'2026-07-10T18:50:00Z'}, // 15:50 BRT
+        {type:'prac', label:'Free Practice 3',       utc:'2026-07-11T13:10:00Z'}, // 10:10 BRT
+        {type:'qual', label:'Qualifying — LMGT3',    utc:'2026-07-11T17:30:00Z'}, // 14:30 BRT
+        {type:'hyp',  label:'Hyperpole — LMGT3',     utc:'2026-07-11T17:50:00Z'}, // 14:50 BRT
+        {type:'qual', label:'Qualifying — Hypercar', utc:'2026-07-11T18:25:00Z'}, // 15:25 BRT
+        {type:'hyp',  label:'Hyperpole — Hypercar',  utc:'2026-07-11T18:45:00Z'}, // 15:45 BRT
+        {type:'race', label:'6 Hours of São Paulo',  utc:'2026-07-12T14:30:00Z'}, // 11:30 BRT
+      ],
+    },
+
+    rounds:[
+      {n:1, name:'6 Hours of Imola',            loc:'Autodromo Internazionale Enzo e Dino Ferrari, Italy', dates:'19 Apr 2026',      done:true},
+      {n:2, name:'6 Hours of Spa-Francorchamps', loc:'Circuit de Spa-Francorchamps, Belgium',              dates:'9 May 2026',       done:true},
+      {n:3, name:'24 Hours of Le Mans',          loc:'Circuit de la Sarthe, Le Mans, France',              dates:'13–14 Jun 2026',   done:true},
+      {n:4, name:'Rolex 6 Hours of São Paulo',   loc:'Interlagos, São Paulo, Brazil',                      dates:'10–12 Jul 2026',   done:false, next:true},
+      {n:5, name:'Lone Star Le Mans (COTA)',     loc:'Circuit of the Americas, Austin, Texas, USA',        dates:'6 Sep 2026',       done:false},
+      {n:6, name:'6 Hours of Fuji',              loc:'Fuji Speedway, Oyama, Shizuoka, Japan',              dates:'27 Sep 2026',      done:false},
+      {n:7, name:'Qatar 1812 km',                loc:'Losail International Circuit, Lusail, Qatar',        dates:'24 Oct 2026',      done:false},
+      {n:8, name:'8 Hours of Bahrain',           loc:'Bahrain International Circuit, Sakhir, Bahrain',     dates:'7 Nov 2026',       done:false},
+    ],
+  },
+];
+
+// ═══════════════════════════════════════════════
+//  STATE
+// ═══════════════════════════════════════════════
+let tz   = 'Europe/Berlin';
+let lang = 'en';
+function t(k){ return (LANG[lang]||LANG.en)[k] || k; }
+
+// ═══════════════════════════════════════════════
+//  HELPERS
+// ═══════════════════════════════════════════════
+function fmtTime(utc, zone){
+  return new Intl.DateTimeFormat('en-GB',{timeZone:zone,hour:'2-digit',minute:'2-digit',hour12:false}).format(new Date(utc));
+}
+function fmtDate(utc, zone){
+  const loc = lang==='de'?'de-DE':lang==='fr'?'fr-FR':'en-GB';
+  return new Intl.DateTimeFormat(loc,{timeZone:zone,weekday:'short',day:'numeric',month:'short'}).format(new Date(utc));
+}
+function countdown(utc){
+  const diff = Math.ceil((new Date(utc)-new Date())/(864e5));
+  if(diff<=0) return t('today');
+  if(diff===1) return t('tomorrow');
+  return diff+' '+t('days_away');
+}
+function nextIdx(sessions){
+  const now=new Date();
+  for(let i=0;i<sessions.length;i++) if(new Date(sessions[i].utc)>now) return i;
+  return -1;
+}
+function pillCls(type){ return {prac:'prac',qual:'qual',race:'race',warm:'warm',hyp:'hyp'}[type]||'prac'; }
+function pillTxt(type){ return {prac:t('prac'),qual:t('qual'),race:t('race'),warm:t('warm'),hyp:t('hyp')}[type]||type; }
+
+// ═══════════════════════════════════════════════
+//  BUILD
+// ═══════════════════════════════════════════════
+function buildCard(league){
+  const {id,css,name,sub,pill,url,ytUrl,currentRound,totalRounds,nextEvent,rounds} = league;
+  const ni = nextIdx(nextEvent.sessions);
+  const firstUtc = nextEvent.sessions[0].utc;
+
+  const card = document.createElement('div');
+  card.className = `card ${css}`;
+  card.dataset.id = id;
+
+  // top accent bar
+  card.innerHTML = `<div class="card-top-bar"></div>`;
+
+  // header
+  const head = document.createElement('div');
+  head.className='card-head';
+  head.innerHTML=`
+    <div class="card-id">
+      <span class="league-pill">${pill}</span>
+      <div><div class="league-name">${name}</div><div class="league-sub">${sub}</div></div>
+    </div>
+    <div class="card-links">
+      <a class="btn-link btn-yt" href="${ytUrl}" target="_blank" rel="noopener" title="${t('btn_yt')}">
+        <svg width="11" height="8" viewBox="0 0 11 8" fill="none"><path d="M10.5 1.3A1.38 1.38 0 0 0 9.53.33C8.7.1 5.5.1 5.5.1S2.3.1 1.47.33A1.38 1.38 0 0 0 .5 1.3C.27 2.13.27 4 .27 4S.27 5.87.5 6.7c.13.5.5.87 1 1C2.3 7.9 5.5 7.9 5.5 7.9s3.2 0 4.03-.23a1.38 1.38 0 0 0 .97-.97C10.73 5.87 10.73 4 10.73 4s0-1.87-.23-2.7Z" fill="#FF0000"/><path d="M4.45 5.68 7.18 4 4.45 2.32v3.36Z" fill="#fff"/></svg>
+        <span data-i18n="btn_yt">${t('btn_yt')}</span>
+      </a>
+      <a class="btn-link" href="${url}" target="_blank" rel="noopener" title="${t('verify')}">
+        <svg width="9" height="9" viewBox="0 0 9 9" fill="none"><path d="M1 8L8 1M8 1H4M8 1V5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <span data-i18n="btn_official">${t('btn_official')}</span>
+      </a>
+    </div>
+  `;
+  card.appendChild(head);
+
+  // tabs
+  const tabs = document.createElement('div');
+  tabs.className='card-tabs';
+  tabs.innerHTML=`
+    <button class="tab-btn active" data-tab="next" data-card="${id}" data-i18n="tab_next">${t('tab_next')}</button>
+    <button class="tab-btn" data-tab="cal" data-card="${id}" data-i18n="tab_cal">${t('tab_cal')}</button>
+  `;
+  card.appendChild(tabs);
+
+  // ── NEXT RACE PANEL
+  const nextPanel = document.createElement('div');
+  nextPanel.id=`panel-next-${id}`;
+
+  // event banner
+  const banner = document.createElement('div');
+  banner.className='event-banner';
+  banner.innerHTML=`
+    <div>
+      <div class="ev-name">${nextEvent.name}</div>
+      <div class="ev-loc">${nextEvent.location}</div>
+    </div>
+    <div class="ev-countdown">
+      <strong data-countdown="${firstUtc}">${countdown(firstUtc)}</strong>
+      <span data-i18n="lbl_live">${t('lbl_live')}</span>
+    </div>
+  `;
+  nextPanel.appendChild(banner);
+
+  // sessions
+  const sessWrap = document.createElement('div');
+  sessWrap.className='sessions';
+  nextEvent.sessions.forEach((s,i)=>{
+    const isNext = i===ni;
+    const isDone = new Date(s.utc)<new Date();
+    const row = document.createElement('div');
+    row.className='session-row'+(isNext?' is-next':'')+(isDone?' is-done':'');
+    row.innerHTML=`
+      <div class="s-left">
+        <span class="s-pill ${pillCls(s.type)}">${pillTxt(s.type)}</span>
+        <div class="s-info">
+          ${isNext?`<div class="s-next-lbl" data-i18n="next_lbl">${t('next_lbl')}</div>`:''}
+          <div class="s-label">${s.label}</div>
+          <div class="s-date">${fmtDate(s.utc,tz)}</div>
+        </div>
+      </div>
+      <div class="s-right">
+        <div class="s-time" data-utc="${s.utc}">${fmtTime(s.utc,tz)}</div>
+        <div class="s-tz">${tz.replace(/_/g,' ')}</div>
+      </div>
+    `;
+    sessWrap.appendChild(row);
+  });
+  nextPanel.appendChild(sessWrap);
+  card.appendChild(nextPanel);
+
+  // ── FULL CALENDAR PANEL
+  const calPanel = document.createElement('div');
+  calPanel.id=`panel-cal-${id}`;
+  calPanel.className='cal-panel';
+  rounds.forEach(r=>{
+    const div=document.createElement('div');
+    div.className='cal-round'+(r.done?' done':'')+(r.next?' next':'');
+    const statusLbl = r.done?`<div class="cr-status done" data-i18n="done_lbl">${t('done_lbl')}</div>` : r.next?`<div class="cr-status next" data-i18n="next_lbl">${t('next_lbl')}</div>` : `<div class="cr-status upcoming" data-i18n="upcoming_lbl">${t('upcoming_lbl')}</div>`;
+    div.innerHTML=`
+      <div class="cr-num">${r.n}</div>
+      <div class="cr-info">
+        <div class="cr-name">${r.name}</div>
+        <div class="cr-loc">${r.loc}</div>
+      </div>
+      <div>
+        <div class="cr-dates">${r.dates}</div>
+        ${statusLbl}
+      </div>
+    `;
+    calPanel.appendChild(div);
+  });
+  card.appendChild(calPanel);
+
+  // footer
+  const foot=document.createElement('div');
+  foot.className='card-foot';
+  foot.innerHTML=`
+    <span class="foot-info"><span data-i18n="rnd">${t('rnd')}</span> <strong>${currentRound}</strong> <span data-i18n="of">${t('of')}</span> <strong>${totalRounds}</strong></span>
+    <span class="foot-note" data-i18n="verify">${t('verify')}</span>
+  `;
+  card.appendChild(foot);
+
+  return card;
+}
+
+function renderAll(){
+  const grid=document.getElementById('grid');
+  grid.innerHTML='';
+  DATA.forEach(l=>grid.appendChild(buildCard(l)));
+  applyI18n();
+}
+
+// ═══════════════════════════════════════════════
+//  UPDATE TIMES
+// ═══════════════════════════════════════════════
+function updateTimes(){
+  document.querySelectorAll('.s-time[data-utc]').forEach(el=>{
+    const n=fmtTime(el.dataset.utc,tz);
+    if(el.textContent!==n){ el.textContent=n; el.classList.remove('flash'); void el.offsetWidth; el.classList.add('flash'); }
+  });
+  document.querySelectorAll('.s-tz').forEach(el=>el.textContent=tz.replace(/_/g,' '));
+  document.querySelectorAll('[data-countdown]').forEach(el=>el.textContent=countdown(el.dataset.countdown));
+}
+
+// ═══════════════════════════════════════════════
+//  i18n UPDATE
+// ═══════════════════════════════════════════════
+function applyI18n(){
+  document.querySelectorAll('[data-i18n]').forEach(el=>{
+    const k=el.dataset.i18n; if(k) el.textContent=t(k);
+  });
+  // pill text
+  document.querySelectorAll('.s-pill').forEach(el=>{
+    const types=['prac','qual','race','warm','hyp'];
+    types.forEach(tp=>{ if(el.classList.contains(tp)) el.textContent=pillTxt(tp); });
+  });
+}
+
+// ═══════════════════════════════════════════════
+//  TAB SWITCHING
+// ═══════════════════════════════════════════════
+document.getElementById('grid').addEventListener('click',e=>{
+  const btn=e.target.closest('.tab-btn');
+  if(!btn) return;
+  const cardId=btn.dataset.card;
+  const tab=btn.dataset.tab;
+  // update tab buttons
+  document.querySelectorAll(`.tab-btn[data-card="${cardId}"]`).forEach(b=>b.classList.toggle('active',b.dataset.tab===tab));
+  // show/hide panels
+  const nextP=document.getElementById(`panel-next-${cardId}`);
+  const calP =document.getElementById(`panel-cal-${cardId}`);
+  if(nextP) nextP.style.display=tab==='next'?'':'none';
+  if(calP)  calP.classList.toggle('active',tab==='cal');
+});
+
+// ═══════════════════════════════════════════════
+//  CONTROLS
+// ═══════════════════════════════════════════════
+document.getElementById('tzSel').addEventListener('change',function(){
+  tz=this.value; updateTimes();
+});
+document.getElementById('langSel').addEventListener('change',function(){
+  lang=this.value;
+  const savedTz=tz;
+  renderAll();
+  document.getElementById('tzSel').value=savedTz;
+  document.getElementById('langSel').value=lang;
+  tz=savedTz;
+});
+
+// ═══════════════════════════════════════════════
+//  INIT
+// ═══════════════════════════════════════════════
+(function init(){
+  try{
+    const det=Intl.DateTimeFormat().resolvedOptions().timeZone;
+    const sel=document.getElementById('tzSel');
+    if([...sel.options].find(o=>o.value===det)){ tz=det; sel.value=det; }
+  }catch(e){}
+  renderAll();
+  setInterval(updateTimes,60000);
+})();
+</script>
+</body>
+</html>
